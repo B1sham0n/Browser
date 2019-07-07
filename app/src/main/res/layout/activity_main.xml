@@ -15,7 +15,9 @@
             android:id="@+id/etLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="90"/>
+            android:layout_weight="98"
+            android:maxLines="1"
+            />
         <Button
             android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
@@ -25,7 +27,7 @@
             android:drawableLeft="@drawable/ic_search"
             android:drawableStart="@drawable/ic_search"
             android:gravity="center_horizontal|center_vertical"
-            android:layout_weight="5"
+            android:layout_weight="1"
             />
         <Button
             android:id="@+id/btnMore"
@@ -36,7 +38,7 @@
             android:drawableLeft="@drawable/ic_more"
             android:drawableStart="@drawable/ic_more"
             android:gravity="center_horizontal|center_vertical"
-            android:layout_weight="5"
+            android:layout_weight="1"
             />
     </LinearLayout>
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
