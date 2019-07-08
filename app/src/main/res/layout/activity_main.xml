@@ -11,12 +11,25 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="100">
+        <Button
+            android:id="@+id/btnSaveHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="10dp"
+            android:minWidth="10dp"
+            android:drawableLeft="@drawable/ic_home"
+            android:drawableStart="@drawable/ic_home"
+            android:gravity="center_horizontal|center_vertical"
+            android:layout_weight="1"
+            />
         <EditText
             android:id="@+id/etLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="98"
+            android:layout_weight="97"
             android:maxLines="1"
+            android:lines="1"
+            android:singleLine="true"
             />
         <Button
             android:id="@+id/btnSearch"
