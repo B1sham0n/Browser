@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -24,12 +25,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
     WebView wv;
     SwipeRefreshLayout swipeLayout;
     EditText etLink;
-    Button btnSearch, btnMore;
+    Button btnSearch, btnMore, btnSaveHome;
     Button btnBefore, btnNext, btnHome, btnMarks;
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -43,19 +45,22 @@ public class MainActivity extends AppCompatActivity {
         etLink = findViewById(R.id.etLink);
         btnMore = findViewById(R.id.btnMore);
         btnSearch = findViewById(R.id.btnSearch);
-
+        btnSaveHome = findViewById(R.id.btnSaveHome);
         //mvc ap
 
         swipeLayout.setOnRefreshListener(refreshListener);
         btnSearch.setOnClickListener(searchListener);
         btnMore.setOnClickListener(moreListener);
+        btnSaveHome.setOnClickListener(saveHomeListener);
 
-        //TODO: добавить функционал кнопок в меню
+        //TODO: добавить функционал кнопок в меню (marks)
 
-        //TODO: создать БД и сохранять home и marks
+        //TODO: создавать интент при нажатии на кнопку "+", и создать список открытых вкладок
+
+        //TODO: сохранять marks в DB
 
         dbHelper = new DBHelper(this);
-        setHome();
+        //setHome();
     }
     private String getAddress(){
         String etOutput = etLink.getText().toString();
@@ -86,20 +91,33 @@ public class MainActivity extends AppCompatActivity {
         //далее в цикле создаем childView до тех пор, пока не закончится бд
         //при этом каждый раз перемещаем курсор и берем новые значения строки
         if(c.moveToFirst()) {
+            System.out.println("___IAMHOME");
             linkHome = c.getString(c.getColumnIndex("link"));//id=0 - HOME
         }
-        else
+        else{
+            System.out.println("___IAMEMPTY");
             linkHome = "https://ya.ru";
+        }
+        Toast.makeText(getApplicationContext(), "Home page [" + linkHome + "] loaded " + c.getCount(), Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
         c.close();
         return linkHome;
     }
     private void setHome(){
         ContentValues cv = new ContentValues();
         db = dbHelper.getWritableDatabase();
-        cv.put("link", wv.getUrl());
-
-        db.update("linkTable", cv,"id = " + 0, null);
+        String newHome = wv.getUrl();
+        if(newHome != "")
+            cv.put("link", newHome);
+        else
+            cv.put("link", "https://ya.ru");
+        Cursor c = db.query("linkTable", null,null, null,
+                null, null, null);
+        if(c.getCount() != 0)
+            db.update("linkTable", cv,"id = " + 1, null);
+        else
+            db.insert("linkTable", null, cv);
         //dbHelper.close();//TODO:проверить на баги, мб надо убрать
+        Toast.makeText(this, "Home page[" + newHome + "] saved", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
     }
     SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
         @Override
@@ -108,12 +126,18 @@ public class MainActivity extends AppCompatActivity {
             wv.loadUrl( "javascript:window.location.reload( true )" );
         }
     };
-    View.OnClickListener goHome = new View.OnClickListener(){
+    View.OnClickListener saveHomeListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            setHome();
+        }
+    };
+    View.OnClickListener goHomeListener = new View.OnClickListener(){
         @Override
         public void onClick(View view) {
             String linkHome = getHome();
+            Toast.makeText(getApplicationContext(), "Home page [" + linkHome + "] loaded", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
             wv.loadUrl(linkHome);
-            //TODO: сделать, чтобы тут читался id=0 (home)
         }
     };
     View.OnClickListener nextListener = new View.OnClickListener() {
@@ -135,6 +159,13 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             String link = getAddress();
             openLink(link);
+        }
+    };
+    View.OnClickListener marksListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(getApplicationContext(), MarksActivity.class);
+            startActivity(intent);
         }
     };
     View.OnClickListener moreListener = new View.OnClickListener() {
@@ -164,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
 
             btnBefore.setOnClickListener(beforeListener);
             btnNext.setOnClickListener(nextListener);
+            btnHome.setOnClickListener(goHomeListener);
+            btnMarks.setOnClickListener(marksListener);
 
             popupWindow.showAtLocation(parent, Gravity.RIGHT, 0, 0);
 
@@ -187,9 +220,7 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 class DBHelper extends SQLiteOpenHelper {
-
     String nameDB = "testDB";
-
     public DBHelper(Context context) {
         // конструктор суперкласса
         super(context, "testDB", null, 1);
