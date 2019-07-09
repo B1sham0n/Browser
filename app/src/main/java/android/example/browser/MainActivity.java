@@ -18,11 +18,14 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
@@ -31,8 +34,9 @@ public class MainActivity extends AppCompatActivity {
     WebView wv;
     SwipeRefreshLayout swipeLayout;
     EditText etLink;
-    Button btnSearch, btnMore, btnSaveHome;
-    Button btnBefore, btnNext, btnHome, btnMarks;
+    Button btnSearch, btnMore;
+    Button btnSaveHome;
+    Button btnBefore, btnNext, btnHome, btnMarks, btnSaveMark;
     DBHelper dbHelper;
     SQLiteDatabase db;
     @Override
@@ -52,13 +56,11 @@ public class MainActivity extends AppCompatActivity {
         btnSearch.setOnClickListener(searchListener);
         btnMore.setOnClickListener(moreListener);
         btnSaveHome.setOnClickListener(saveHomeListener);
-
-        //TODO: добавить функционал кнопок в меню (marks)
-
         //TODO: создавать интент при нажатии на кнопку "+", и создать список открытых вкладок
 
-        //TODO: сохранять marks в DB
+        //TODO: передавать в et текущую ссылку
 
+        //TODO: сделать меню в правом верхнем углу (как в хроме)
         dbHelper = new DBHelper(this);
         //setHome();
     }
@@ -70,14 +72,14 @@ public class MainActivity extends AppCompatActivity {
         else
             search = "https://" + etOutput;
         return search;
-        //TODO: поиск по умолчанию в гугл (мб добавить отдельную кнопку)
     }
     @SuppressLint("SetJavaScriptEnabled")
     private void openLink(String search){
         wv.getSettings().setJavaScriptEnabled(true);
         wv.getSettings().setAppCacheEnabled(true);
+        wv.setWebChromeClient(new WebChromeClient());
         wv.setWebViewClient(new MyWebViewClient());
-
+        //TODO: проверить, нужно ли вообще переопределять NewWebViewClient()
         wv.loadUrl(search);
 
         swipeLayout.setRefreshing(true);
@@ -106,8 +108,10 @@ public class MainActivity extends AppCompatActivity {
         ContentValues cv = new ContentValues();
         db = dbHelper.getWritableDatabase();
         String newHome = wv.getUrl();
-        if(newHome != "")
+        if(newHome != null){
             cv.put("link", newHome);
+            cv.put("id", 1);
+        }
         else
             cv.put("link", "https://ya.ru");
         Cursor c = db.query("linkTable", null,null, null,
@@ -116,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
             db.update("linkTable", cv,"id = " + 1, null);
         else
             db.insert("linkTable", null, cv);
-        //dbHelper.close();//TODO:проверить на баги, мб надо убрать
         Toast.makeText(this, "Home page[" + newHome + "] saved", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
     }
     SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
@@ -137,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             String linkHome = getHome();
             Toast.makeText(getApplicationContext(), "Home page [" + linkHome + "] loaded", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
+            wv.setWebViewClient(new WebViewClient());//иначе открывается стандратный браузер
             wv.loadUrl(linkHome);
         }
     };
@@ -168,6 +172,19 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
     };
+    View.OnClickListener saveMarkListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            ContentValues cv = new ContentValues();
+            db = dbHelper.getWritableDatabase();
+            String newMark = wv.getUrl();
+            if(newMark != null){
+                cv.put("link", newMark);
+                db.insert("linkTable", null, cv);
+                Toast.makeText(getApplicationContext(), "Mark [" + newMark + "] saved", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
+            }
+        }
+    };
     View.OnClickListener moreListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -192,12 +209,13 @@ public class MainActivity extends AppCompatActivity {
             btnNext = popupView.findViewById(R.id.btnNext);
             btnHome = popupView.findViewById(R.id.btnHome);
             btnMarks = popupView.findViewById(R.id.btnMarks);
+            btnSaveMark = popupView.findViewById(R.id.btnSaveMark);
 
             btnBefore.setOnClickListener(beforeListener);
             btnNext.setOnClickListener(nextListener);
             btnHome.setOnClickListener(goHomeListener);
             btnMarks.setOnClickListener(marksListener);
-
+            btnSaveMark.setOnClickListener(saveMarkListener);
             popupWindow.showAtLocation(parent, Gravity.RIGHT, 0, 0);
 
         }
@@ -218,6 +236,15 @@ public class MainActivity extends AppCompatActivity {
         view.loadUrl(url);
         return true;
     }
+
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            //если поиск url вернул ошибку, то ищем в гугле
+            view.loadUrl("https://www.google.com/search?q=" + failingUrl.replaceAll(".*https://", "").replaceFirst(".$",""));
+            //replace удаляет https и / в конце, чтобы выполнить поиск в гугле
+            super.onReceivedError(view, errorCode, description, failingUrl);
+        }
+
+
 }
 class DBHelper extends SQLiteOpenHelper {
     String nameDB = "testDB";

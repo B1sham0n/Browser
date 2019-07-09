@@ -10,18 +10,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:weightSum="100">
+        android:weightSum="100"
+        android:paddingBottom="5dp">
         <Button
             android:id="@+id/btnSaveHome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="10dp"
-            android:minWidth="10dp"
-            android:drawableLeft="@drawable/ic_home"
-            android:drawableStart="@drawable/ic_home"
-            android:gravity="center_horizontal|center_vertical"
-            android:layout_weight="1"
-            />
+            android:minHeight="5dp"
+            android:minWidth="5dp"
+            android:background="@drawable/ic_home"
+            android:textColor="@android:color/white"
+            android:drawableTint="@android:color/white"
+            android:backgroundTint="@color/myGray"
+            android:layout_weight="1"/>
         <EditText
             android:id="@+id/etLink"
             android:layout_width="wrap_content"
@@ -35,24 +36,25 @@
             android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="10dp"
-            android:minWidth="10dp"
-            android:drawableLeft="@drawable/ic_search"
-            android:drawableStart="@drawable/ic_search"
-            android:gravity="center_horizontal|center_vertical"
-            android:layout_weight="1"
-            />
+            android:minHeight="5dp"
+            android:minWidth="5dp"
+            android:background="@drawable/ic_search"
+            android:textColor="@android:color/white"
+            android:drawableTint="@android:color/white"
+            android:backgroundTint="@color/myGray"
+            android:layout_weight="1"/>
         <Button
             android:id="@+id/btnMore"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="10dp"
-            android:minWidth="10dp"
-            android:drawableLeft="@drawable/ic_more"
-            android:drawableStart="@drawable/ic_more"
-            android:gravity="center_horizontal|center_vertical"
-            android:layout_weight="1"
-            />
+            android:minHeight="5dp"
+            android:minWidth="5dp"
+            android:background="@drawable/ic_more"
+            android:textColor="@android:color/white"
+            android:drawableTint="@android:color/white"
+            android:backgroundTint="@color/myGray"
+            android:layout_weight="1"/>
+
     </LinearLayout>
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe"

@@ -20,8 +20,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:minHeight="10dp"
-                android:minWidth="10dp"
+                android:minHeight="5dp"
+                android:minWidth="5dp"
                 android:drawableLeft="@drawable/ic_navigate_before"
                 android:drawableStart="@drawable/ic_navigate_before"
                 android:gravity="center_horizontal|center_vertical"/>
@@ -30,11 +30,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:minHeight="10dp"
-                android:minWidth="10dp"
+                android:minHeight="5dp"
+                android:minWidth="5dp"
                 android:drawableRight="@drawable/ic_navigate_next"
                 android:drawableEnd="@drawable/ic_navigate_next"
                 android:gravity="center_horizontal|center_vertical"/>
+            <Button
+                android:id="@+id/btnAddPage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="5dp"
+                android:minWidth="5dp"
+                android:drawableLeft="@drawable/ic_add_circle"
+                android:drawableStart="@drawable/ic_add_circle"
+                android:textColor="@android:color/white"
+                android:drawableTint="@android:color/white"/>
+            <Button
+                android:id="@+id/btnRefresh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="5dp"
+                android:minWidth="5dp"
+                android:drawableRight="@drawable/ic_refresh"
+                android:drawableEnd="@drawable/ic_refresh"
+                android:gravity="center_horizontal|center_vertical"
+                android:textColor="@android:color/white"
+                android:drawableTint="@android:color/white" />
+
         </LinearLayout>
         <Button
             android:id="@+id/btnHome"
@@ -43,14 +66,24 @@
             android:text="Home"
             android:drawableLeft="@drawable/ic_home"
             android:drawableStart="@drawable/ic_home"
+            android:textColor="@android:color/white"
+            android:drawableTint="@android:color/white"/>
+        <Button
+            android:id="@+id/btnSaveMark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save"
+            android:drawableLeft="@drawable/ic_bookmark"
+            android:drawableStart="@drawable/ic_bookmark"
             android:textColor="@android:color/white"/>
         <Button
             android:id="@+id/btnMarks"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Marks"
-            android:drawableLeft="@drawable/ic_bookmark"
-            android:drawableStart="@drawable/ic_bookmark"
-            android:textColor="@android:color/white"/>
+            android:drawableLeft="@drawable/ic_collections_bookmark"
+            android:drawableStart="@drawable/ic_collections_bookmark"
+            android:textColor="@android:color/white"
+            android:drawableTint="@android:color/white"/>
     </LinearLayout>
 </LinearLayout>

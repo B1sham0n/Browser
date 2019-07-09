@@ -1,0 +1,22 @@
+<LinearLayout android:id="@+id/newLayoutMarks"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_margin="2dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@android:color/white">
+    <TextView
+        android:id="@+id/tvLinkMark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="99"
+        android:text="https://ya.ru"
+        android:textSize="20dp"/>
+    <ImageButton
+        android:id="@+id/btnCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_cancel"
+        android:layout_marginTop="2dp"
+        android:tint="@color/myGray"/>
+</LinearLayout>
