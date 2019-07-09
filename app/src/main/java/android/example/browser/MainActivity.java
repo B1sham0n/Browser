@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     Button btnBefore, btnNext, btnHome, btnMarks, btnSaveMark;
     DBHelper dbHelper;
     SQLiteDatabase db;
+    String  HOME_PAGE_DEFAULT = "https://ya.ru";
+    String NAME_TABLE = "linkTable";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,11 +58,19 @@ public class MainActivity extends AppCompatActivity {
         btnSearch.setOnClickListener(searchListener);
         btnMore.setOnClickListener(moreListener);
         btnSaveHome.setOnClickListener(saveHomeListener);
-        //TODO: создавать интент при нажатии на кнопку "+", и создать список открытых вкладок
+        //TODO: погуглить про историю, вынести переменные в отдельный файл
+
+        //TODO: сделать функционал кнопок add и refresh
+
+        //TODO: создавать интент/активити при нажатии на кнопку "+", и создать список открытых вкладок
 
         //TODO: передавать в et текущую ссылку
+        //погуглить методы WebViewClient(), есть метод, срабатывающий при загрузке стр
+        // - закинуть туда обновление et
 
-        //TODO: сделать меню в правом верхнем углу (как в хроме)
+        //TODO: сделать красивое меню в правом верхнем углу (как в хроме)
+        //погуглить, как сделать тень и скругления
+
         dbHelper = new DBHelper(this);
         //setHome();
     }
@@ -87,20 +97,16 @@ public class MainActivity extends AppCompatActivity {
     private String getHome(){
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         String linkHome;
-        Cursor c = db.query("linkTable", null,null, null,
+        Cursor c = db.query(NAME_TABLE, null,null, null,
                 null, null, null);
 
         //далее в цикле создаем childView до тех пор, пока не закончится бд
         //при этом каждый раз перемещаем курсор и берем новые значения строки
-        if(c.moveToFirst()) {
-            System.out.println("___IAMHOME");
+        if(c.moveToFirst())
             linkHome = c.getString(c.getColumnIndex("link"));//id=0 - HOME
-        }
-        else{
-            System.out.println("___IAMEMPTY");
-            linkHome = "https://ya.ru";
-        }
-        Toast.makeText(getApplicationContext(), "Home page [" + linkHome + "] loaded " + c.getCount(), Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
+        else
+            linkHome = HOME_PAGE_DEFAULT;
+        Toast.makeText(getApplicationContext(), "Home page [" + linkHome + "] loaded ", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
         c.close();
         return linkHome;
     }
@@ -108,23 +114,23 @@ public class MainActivity extends AppCompatActivity {
         ContentValues cv = new ContentValues();
         db = dbHelper.getWritableDatabase();
         String newHome = wv.getUrl();
-        if(newHome != null){
-            cv.put("link", newHome);
-            cv.put("id", 1);
+        if(newHome == null){
+          newHome = HOME_PAGE_DEFAULT;//если строка с url пустая
         }
-        else
-            cv.put("link", "https://ya.ru");
-        Cursor c = db.query("linkTable", null,null, null,
+        cv.put("link", newHome);
+        Cursor c = db.query(NAME_TABLE, null,null, null,
                 null, null, null);
+        //если БД чистая, то update не добавит новую строку
         if(c.getCount() != 0)
-            db.update("linkTable", cv,"id = " + 1, null);
+            db.update(NAME_TABLE, cv,"id = " + 1, null);
         else
-            db.insert("linkTable", null, cv);
+            db.insert(NAME_TABLE, null, cv);
         Toast.makeText(this, "Home page[" + newHome + "] saved", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
     }
     SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
         @Override
         public void onRefresh() {
+            //TODO: починить refresh layout
             wv.reload();
             wv.loadUrl( "javascript:window.location.reload( true )" );
         }
@@ -147,15 +153,13 @@ public class MainActivity extends AppCompatActivity {
     View.OnClickListener nextListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            System.out.println("NEXT");
-                wv.goForward();
+            wv.goForward();
         }
     };
     View.OnClickListener beforeListener = new View.OnClickListener(){
         @Override
         public void onClick(View view) {
-            System.out.println("LAST");
-                wv.goBack();
+            wv.goBack();
         }
     };
     View.OnClickListener searchListener = new View.OnClickListener() {
@@ -180,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
             String newMark = wv.getUrl();
             if(newMark != null){
                 cv.put("link", newMark);
-                db.insert("linkTable", null, cv);
+                db.insert(NAME_TABLE, null, cv);
                 Toast.makeText(getApplicationContext(), "Mark [" + newMark + "] saved", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
             }
         }
@@ -216,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
             btnHome.setOnClickListener(goHomeListener);
             btnMarks.setOnClickListener(marksListener);
             btnSaveMark.setOnClickListener(saveMarkListener);
-            popupWindow.showAtLocation(parent, Gravity.RIGHT, 0, 0);
+            popupWindow.showAtLocation(parent, Gravity.RIGHT|Gravity.TOP, 0, 0);
 
         }
     };
@@ -237,17 +241,16 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-            //если поиск url вернул ошибку, то ищем в гугле
-            view.loadUrl("https://www.google.com/search?q=" + failingUrl.replaceAll(".*https://", "").replaceFirst(".$",""));
-            //replace удаляет https и / в конце, чтобы выполнить поиск в гугле
-            super.onReceivedError(view, errorCode, description, failingUrl);
+    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+        //если поиск url вернул ошибку, то ищем в гугле
+        view.loadUrl("https://www.google.com/search?q=" + failingUrl.replaceAll(".*https://", "").replaceFirst(".$",""));
+        //replace удаляет https и / в конце, чтобы выполнить поиск в гугле
+        super.onReceivedError(view, errorCode, description, failingUrl);
         }
 
 
 }
 class DBHelper extends SQLiteOpenHelper {
-    String nameDB = "testDB";
     public DBHelper(Context context) {
         // конструктор суперкласса
         super(context, "testDB", null, 1);
