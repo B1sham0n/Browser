@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#708090</color>
     <color name="colorPrimaryDark">#708090</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorAccent">#0000ff</color>
     <color name="myGray">#696969</color>
-    <color name="bcgMarksList">#DCDCDC</color>
+    <color name="lightGray">#DCDCDC</color>
 </resources>

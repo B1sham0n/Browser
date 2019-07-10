@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="100"
-        android:paddingBottom="5dp">
+        android:padding="5dp">
         <Button
             android:id="@+id/btnSaveHome"
             android:layout_width="wrap_content"
@@ -28,9 +28,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="97"
+            android:padding="5dp"
             android:maxLines="1"
             android:lines="1"
             android:singleLine="true"
+            android:background="@drawable/custom_rectangle"
             />
         <Button
             android:id="@+id/btnSearch"
@@ -60,11 +62,17 @@
         android:id="@+id/swipe"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <WebView
-            android:id="@+id/webView"
+        <RelativeLayout
+            android:id="@+id/nonVideoLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:backgroundTint="@android:color/white">
-        </WebView>
+            android:windowSoftInputMode="adjustResize">
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:backgroundTint="@android:color/white">
+            </WebView>
+        </RelativeLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>

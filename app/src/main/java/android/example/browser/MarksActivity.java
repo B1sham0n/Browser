@@ -4,18 +4,22 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.Image;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.zip.Inflater;
 
 public class MarksActivity extends AppCompatActivity {
 
@@ -23,10 +27,17 @@ public class MarksActivity extends AppCompatActivity {
     DBHelper dbHelper;
     LinearLayout parentMarks;
     SQLiteDatabase db;
+    WebView wv;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_marks);
+
+        LayoutInflater layoutInflater
+                = (LayoutInflater) getBaseContext()
+                .getSystemService(LAYOUT_INFLATER_SERVICE);
+        View mainView = layoutInflater.inflate(R.layout.activity_main, null);
+        wv = mainView.findViewById(R.id.webView);
 
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -37,13 +48,13 @@ public class MarksActivity extends AppCompatActivity {
         Cursor c = db.query("linkTable", null,null, null,
                 null, null, null);
         //TODO: обработка нажатия на закладку
-
-        //TODO: отображать закладки красиво
+        //TODO: listener for textview
         if(c.moveToFirst()) {
             c.moveToNext();//id = 0 its home
             do{
                 childView = inflater.inflate(R.layout.mark, null);//создается новый child
                 TextView tvMarkLink = childView.findViewById(R.id.tvLinkMark);
+                tvMarkLink.setOnClickListener(tvListener);
                 btnCancel = childView.findViewById(R.id.btnCancel);
                 btnCancel.setTag("cancel");//для updateIdButton
                 btnCancel.setOnClickListener(cancelListener);
@@ -68,6 +79,20 @@ public class MarksActivity extends AppCompatActivity {
             }
         }
     };
+    View.OnClickListener tvListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+
+            TextView tv = (TextView) view;
+            loadMark lm = (loadMark) getApplicationContext();
+            lm.loadMarkUrl(tv.getText().toString());
+            startActivity(intent);
+        }
+    };
+    public interface loadMark{
+        void loadMarkUrl(String url);//TODO:сюда должен приходить юрл
+    }
     private void updateIdButton(ImageButton btn){
         View v = null;
         for(int i = 0; i < parentMarks.getChildCount(); i++){

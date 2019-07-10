@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     tools:context=".MarksActivity"
     android:orientation="vertical"
-    android:background="@color/bcgMarksList">
+    android:background="@color/lightGray">
     <include
         layout="@layout/mark"
         android:layout_width="match_parent"

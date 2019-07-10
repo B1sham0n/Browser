@@ -14,6 +14,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,13 +31,13 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MarksActivity.loadMark {
     WebView wv;
     SwipeRefreshLayout swipeLayout;
     EditText etLink;
     Button btnSearch, btnMore;
     Button btnSaveHome;
-    Button btnBefore, btnNext, btnHome, btnMarks, btnSaveMark;
+    Button btnBefore, btnNext, btnHome, btnMarks, btnSaveMark, btnRefresh;
     DBHelper dbHelper;
     SQLiteDatabase db;
     String  HOME_PAGE_DEFAULT = "https://ya.ru";
@@ -54,25 +55,26 @@ public class MainActivity extends AppCompatActivity {
         btnSaveHome = findViewById(R.id.btnSaveHome);
         //mvc ap
 
+        //etLink.setBackground(R.drawable.custom_rectangle);
+
         swipeLayout.setOnRefreshListener(refreshListener);
         btnSearch.setOnClickListener(searchListener);
         btnMore.setOnClickListener(moreListener);
         btnSaveHome.setOnClickListener(saveHomeListener);
         //TODO: погуглить про историю, вынести переменные в отдельный файл
 
-        //TODO: сделать функционал кнопок add и refresh
+        //TODO: сделать функционал кнопок add
 
         //TODO: создавать интент/активити при нажатии на кнопку "+", и создать список открытых вкладок
 
         //TODO: передавать в et текущую ссылку
         //погуглить методы WebViewClient(), есть метод, срабатывающий при загрузке стр
         // - закинуть туда обновление et
-
-        //TODO: сделать красивое меню в правом верхнем углу (как в хроме)
-        //погуглить, как сделать тень и скругления
+        //как обратиться из другого класса?
 
         dbHelper = new DBHelper(this);
         //setHome();
+
     }
     private String getAddress(){
         String etOutput = etLink.getText().toString();
@@ -89,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         wv.getSettings().setAppCacheEnabled(true);
         wv.setWebChromeClient(new WebChromeClient());
         wv.setWebViewClient(new MyWebViewClient());
-        //TODO: проверить, нужно ли вообще переопределять NewWebViewClient()
         wv.loadUrl(search);
 
         swipeLayout.setRefreshing(true);
@@ -162,6 +163,12 @@ public class MainActivity extends AppCompatActivity {
             wv.goBack();
         }
     };
+    View.OnClickListener btnRefreshListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            wv.reload();
+        }
+    };
     View.OnClickListener searchListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -214,34 +221,69 @@ public class MainActivity extends AppCompatActivity {
             btnHome = popupView.findViewById(R.id.btnHome);
             btnMarks = popupView.findViewById(R.id.btnMarks);
             btnSaveMark = popupView.findViewById(R.id.btnSaveMark);
+            btnRefresh = popupView.findViewById(R.id.btnRefresh);
 
             btnBefore.setOnClickListener(beforeListener);
             btnNext.setOnClickListener(nextListener);
             btnHome.setOnClickListener(goHomeListener);
             btnMarks.setOnClickListener(marksListener);
             btnSaveMark.setOnClickListener(saveMarkListener);
+            btnRefresh.setOnClickListener(btnRefreshListener);
+
             popupWindow.showAtLocation(parent, Gravity.RIGHT|Gravity.TOP, 0, 0);
 
         }
     };
+    public void setURl(String url){
+        System.out.println("_________________URL: " + url);
+        etLink = findViewById(R.id.etLink);
+        if(url != null)
+            etLink.setText(url);
+    }
+    public EditText getET(){
+        EditText et = findViewById(R.id.etLink);
+        Intent intent = new Intent();
+        return  et;
+    }
+
+
+    @Override
+    public void loadMarkUrl(String url) {
+        wv.loadUrl(url);
+        System.out.println("IAMHERE!!!!!!!!!!!!!!!!!!");
+        Toast.makeText(this, url, Toast.LENGTH_SHORT).show();
+        //TODO: не приходит юрл
+    }
 }
-    class MyWebViewClient extends WebViewClient {
-    //без переопределения класса не будет открываться мой браузер
-    @TargetApi(Build.VERSION_CODES.N)
-    @Override
-    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-        view.loadUrl(request.getUrl().toString());
-        return true;
-    }
+    class MyWebViewClient extends WebViewClient{
+        MyCallBackUrl callback;
+        //без переопределения класса не будет открываться мой браузер
+        @TargetApi(Build.VERSION_CODES.N)
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            view.loadUrl(request.getUrl().toString());
+            return true;
+        }
 
-    // Для старых устройств
-    @Override
-    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        view.loadUrl(url);
-        return true;
-    }
+        // Для старых устройств
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            view.loadUrl(url);
+            return true;
+        }
+        public interface MyCallBackUrl{
+            public void UpdateUrl(String url);
+        }
+        @Override
+        public void onPageFinished(WebView view, final String url) {
+            super.onPageFinished(view, url);
+            Toast.makeText(view.getContext(), "Url [" + url + "] loaded", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
 
-    public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            //TODO: где-то здесь надо обновлять URL in EditText
+            //callback.UpdateUrl(url);
+        }
+
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
         //если поиск url вернул ошибку, то ищем в гугле
         view.loadUrl("https://www.google.com/search?q=" + failingUrl.replaceAll(".*https://", "").replaceFirst(".$",""));
         //replace удаляет https и / в конце, чтобы выполнить поиск в гугле
@@ -250,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 }
-class DBHelper extends SQLiteOpenHelper {
+    class DBHelper extends SQLiteOpenHelper {
     public DBHelper(Context context) {
         // конструктор суперкласса
         super(context, "testDB", null, 1);
@@ -260,6 +302,7 @@ class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         //Log.d(LOG_TAG, "--- onCreate database ---");
         // создаем таблицу с полями
+
         db.execSQL("create table linkTable ("
                 + "id integer primary key autoincrement,"
                 + "link text" + ");");

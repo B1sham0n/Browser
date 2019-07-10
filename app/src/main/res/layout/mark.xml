@@ -2,9 +2,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:layout_margin="5dp"
+    android:layout_margin="10dp"
+    android:padding="10dp"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@android:color/white">
+    android:background="@drawable/custom_marks">
     <TextView
         android:id="@+id/tvLinkMark"
         android:layout_width="wrap_content"
@@ -12,12 +13,16 @@
         android:layout_weight="99"
         android:paddingLeft="2dp"
         android:text="https://ya.ru"
-        android:textSize="20dp" />
+        android:textSize="18sp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        />
     <ImageButton
         android:id="@+id/btnCancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/ic_cancel"
         android:layout_marginTop="2dp"
+        android:layout_marginLeft="10dp"
         android:tint="@color/myGray"/>
 </LinearLayout>
