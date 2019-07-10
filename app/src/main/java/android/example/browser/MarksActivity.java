@@ -28,6 +28,7 @@ public class MarksActivity extends AppCompatActivity {
     LinearLayout parentMarks;
     SQLiteDatabase db;
     WebView wv;
+    String KEY_MARK = "currentMark";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,14 +48,14 @@ public class MarksActivity extends AppCompatActivity {
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         Cursor c = db.query("linkTable", null,null, null,
                 null, null, null);
-        //TODO: обработка нажатия на закладку
-        //TODO: listener for textview
         if(c.moveToFirst()) {
             c.moveToNext();//id = 0 its home
             do{
                 childView = inflater.inflate(R.layout.mark, null);//создается новый child
                 TextView tvMarkLink = childView.findViewById(R.id.tvLinkMark);
                 tvMarkLink.setOnClickListener(tvListener);
+                tvMarkLink.setId(parentMarks.getChildCount());
+                tvMarkLink.setTag("link_mark");//для updateIdTextView
                 btnCancel = childView.findViewById(R.id.btnCancel);
                 btnCancel.setTag("cancel");//для updateIdButton
                 btnCancel.setOnClickListener(cancelListener);
@@ -76,6 +77,7 @@ public class MarksActivity extends AppCompatActivity {
                 deleteLinkFromDB(db, id);
                 refreshDB(db);
                 updateIdButton((ImageButton) view);
+                updateIdTextView();
             }
         }
     };
@@ -85,14 +87,11 @@ public class MarksActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 
             TextView tv = (TextView) view;
-            loadMark lm = (loadMark) getApplicationContext();
-            lm.loadMarkUrl(tv.getText().toString());
+            intent.putExtra(KEY_MARK, tv.getId());
+
             startActivity(intent);
         }
     };
-    public interface loadMark{
-        void loadMarkUrl(String url);//TODO:сюда должен приходить юрл
-    }
     private void updateIdButton(ImageButton btn){
         View v = null;
         for(int i = 0; i < parentMarks.getChildCount(); i++){
@@ -100,6 +99,17 @@ public class MarksActivity extends AppCompatActivity {
             btn = v.findViewWithTag("cancel");
             if(btn != null){
                 btn.setId(i);
+            }
+        }
+    }
+    private void updateIdTextView(){
+        View v = null;
+        TextView tv;
+        for(int i = 0; i < parentMarks.getChildCount(); i++){
+            v = parentMarks.getChildAt(i);
+            tv = v.findViewWithTag("link_mark");
+            if(tv != null){
+                tv.setId(i);
             }
         }
     }

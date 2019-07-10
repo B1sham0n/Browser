@@ -31,7 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements MarksActivity.loadMark {
+public class MainActivity extends AppCompatActivity {
     WebView wv;
     SwipeRefreshLayout swipeLayout;
     EditText etLink;
@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements MarksActivity.loa
     SQLiteDatabase db;
     String  HOME_PAGE_DEFAULT = "https://ya.ru";
     String NAME_TABLE = "linkTable";
+    String KEY_MARK = "currentMark";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements MarksActivity.loa
         dbHelper = new DBHelper(this);
         //setHome();
 
+        tryToOpenMark();
     }
     private String getAddress(){
         String etOutput = etLink.getText().toString();
@@ -84,6 +86,27 @@ public class MainActivity extends AppCompatActivity implements MarksActivity.loa
         else
             search = "https://" + etOutput;
         return search;
+    }
+    private void tryToOpenMark(){
+        //при открытии закладки создается новая активити, если есть значение в интенте,
+        //то берем его (это id в DB) и ищем ссылку, которую потом передаем в openLink()
+        Integer loadMark = getIntent().getIntExtra(KEY_MARK, 0);
+        if(loadMark != 0){
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            String linkHome = null;
+            Cursor c = db.query(NAME_TABLE, null,null, null,
+                    null, null, null);
+            Integer i = 0;
+            if(c.moveToFirst()){
+                do{
+                    if (i == loadMark)
+                        linkHome = c.getString(c.getColumnIndex("link"));
+                    i++;
+                }while(c.moveToNext());
+            }
+            if(linkHome != null)
+                openLink(linkHome);
+        }
     }
     @SuppressLint("SetJavaScriptEnabled")
     private void openLink(String search){
@@ -247,16 +270,8 @@ public class MainActivity extends AppCompatActivity implements MarksActivity.loa
     }
 
 
-    @Override
-    public void loadMarkUrl(String url) {
-        wv.loadUrl(url);
-        System.out.println("IAMHERE!!!!!!!!!!!!!!!!!!");
-        Toast.makeText(this, url, Toast.LENGTH_SHORT).show();
-        //TODO: не приходит юрл
-    }
 }
     class MyWebViewClient extends WebViewClient{
-        MyCallBackUrl callback;
         //без переопределения класса не будет открываться мой браузер
         @TargetApi(Build.VERSION_CODES.N)
         @Override
@@ -270,9 +285,6 @@ public class MainActivity extends AppCompatActivity implements MarksActivity.loa
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             view.loadUrl(url);
             return true;
-        }
-        public interface MyCallBackUrl{
-            public void UpdateUrl(String url);
         }
         @Override
         public void onPageFinished(WebView view, final String url) {
