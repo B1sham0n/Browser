@@ -5,4 +5,7 @@
     <color name="colorAccent">#0000ff</color>
     <color name="myGray">#696969</color>
     <color name="lightGray">#DCDCDC</color>
+    <color name="refresh_1">#0000ff</color>
+    <color name="refresh_2">#0099ff</color>
+    <color name="refresh_3">#99ccff</color>
 </resources>

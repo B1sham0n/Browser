@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -31,13 +32,16 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class MainActivity extends AppCompatActivity {
     WebView wv;
-    SwipeRefreshLayout swipeLayout;
+    private SwipeRefreshLayout swipeLayout;
     EditText etLink;
     Button btnSearch, btnMore;
     Button btnSaveHome;
-    Button btnBefore, btnNext, btnHome, btnMarks, btnSaveMark, btnRefresh;
+    Button btnBefore, btnNext, btnHome, btnMarks, btnSaveMark, btnRefresh, btnAddPage;
     DBHelper dbHelper;
     SQLiteDatabase db;
     String  HOME_PAGE_DEFAULT = "https://ya.ru";
@@ -55,27 +59,19 @@ public class MainActivity extends AppCompatActivity {
         btnSearch = findViewById(R.id.btnSearch);
         btnSaveHome = findViewById(R.id.btnSaveHome);
         //mvc ap
-
         //etLink.setBackground(R.drawable.custom_rectangle);
 
         swipeLayout.setOnRefreshListener(refreshListener);
         btnSearch.setOnClickListener(searchListener);
         btnMore.setOnClickListener(moreListener);
         btnSaveHome.setOnClickListener(saveHomeListener);
+
+        swipeLayout.setColorSchemeResources(R.color.refresh_1, R.color.refresh_2, R.color.refresh_3);
         //TODO: погуглить про историю, вынести переменные в отдельный файл
-
-        //TODO: сделать функционал кнопок add
-
-        //TODO: создавать интент/активити при нажатии на кнопку "+", и создать список открытых вкладок
-
-        //TODO: передавать в et текущую ссылку
-        //погуглить методы WebViewClient(), есть метод, срабатывающий при загрузке стр
-        // - закинуть туда обновление et
-        //как обратиться из другого класса?
 
         dbHelper = new DBHelper(this);
         //setHome();
-
+        swipeLayout.setRefreshing(false);
         tryToOpenMark();
     }
     private String getAddress(){
@@ -114,9 +110,17 @@ public class MainActivity extends AppCompatActivity {
         wv.getSettings().setAppCacheEnabled(true);
         wv.setWebChromeClient(new WebChromeClient());
         wv.setWebViewClient(new MyWebViewClient());
-        wv.loadUrl(search);
+        if(search != null){
 
-        swipeLayout.setRefreshing(true);
+            WebSettings settings = wv.getSettings();
+            settings.setDefaultTextEncodingName("utf-8");
+            //wv.loadDataWithBaseURL(null, search, "text/html", "utf-8", null);
+            wv.loadUrl(search);
+            //TODO: почему-то не работает кириллица (котики.рф)
+            swipeLayout.setRefreshing(true);
+        }
+        else
+            swipeLayout.setRefreshing(false);
     }
     private String getHome(){
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -154,9 +158,9 @@ public class MainActivity extends AppCompatActivity {
     SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener() {
         @Override
         public void onRefresh() {
-            //TODO: починить refresh layout
             wv.reload();
             wv.loadUrl( "javascript:window.location.reload( true )" );
+            swipeLayout.setRefreshing(false);
         }
     };
     View.OnClickListener saveHomeListener = new View.OnClickListener() {
@@ -219,6 +223,13 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+    View.OnClickListener btnAddPageListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            startActivity(intent);
+        }
+    };
     View.OnClickListener moreListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -245,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
             btnMarks = popupView.findViewById(R.id.btnMarks);
             btnSaveMark = popupView.findViewById(R.id.btnSaveMark);
             btnRefresh = popupView.findViewById(R.id.btnRefresh);
+            btnAddPage = popupView.findViewById(R.id.btnAddPage);
 
             btnBefore.setOnClickListener(beforeListener);
             btnNext.setOnClickListener(nextListener);
@@ -252,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
             btnMarks.setOnClickListener(marksListener);
             btnSaveMark.setOnClickListener(saveMarkListener);
             btnRefresh.setOnClickListener(btnRefreshListener);
+            btnAddPage.setOnClickListener(btnAddPageListener);
 
             popupWindow.showAtLocation(parent, Gravity.RIGHT|Gravity.TOP, 0, 0);
 
@@ -269,8 +282,6 @@ public class MainActivity extends AppCompatActivity {
         return  et;
     }
 
-
-}
     class MyWebViewClient extends WebViewClient{
         //без переопределения класса не будет открываться мой браузер
         @TargetApi(Build.VERSION_CODES.N)
@@ -279,7 +290,6 @@ public class MainActivity extends AppCompatActivity {
             view.loadUrl(request.getUrl().toString());
             return true;
         }
-
         // Для старых устройств
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -290,19 +300,17 @@ public class MainActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, final String url) {
             super.onPageFinished(view, url);
             Toast.makeText(view.getContext(), "Url [" + url + "] loaded", Toast.LENGTH_SHORT).show();//всплывающее окно с текстом
-
-            //TODO: где-то здесь надо обновлять URL in EditText
-            //callback.UpdateUrl(url);
+            swipeLayout.setRefreshing(false);
+            etLink.setText(wv.getUrl());
         }
-
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-        //если поиск url вернул ошибку, то ищем в гугле
-        view.loadUrl("https://www.google.com/search?q=" + failingUrl.replaceAll(".*https://", "").replaceFirst(".$",""));
-        //replace удаляет https и / в конце, чтобы выполнить поиск в гугле
-        super.onReceivedError(view, errorCode, description, failingUrl);
+            //если поиск url вернул ошибку, то ищем в гугле
+            view.loadUrl("https://www.google.com/search?q=" + failingUrl.replaceAll(".*https://", "").replaceFirst(".$",""));
+            swipeLayout.setRefreshing(true);
+            //replace удаляет https и / в конце, чтобы выполнить поиск в гугле
+            super.onReceivedError(view, errorCode, description, failingUrl);
         }
-
-
+    }
 }
     class DBHelper extends SQLiteOpenHelper {
     public DBHelper(Context context) {
