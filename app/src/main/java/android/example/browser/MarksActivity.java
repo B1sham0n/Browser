@@ -29,6 +29,7 @@ public class MarksActivity extends AppCompatActivity {
     SQLiteDatabase db;
     WebView wv;
     String KEY_MARK = "currentMark";
+    String NAME_TABLE = "linkTable";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,16 +38,16 @@ public class MarksActivity extends AppCompatActivity {
         LayoutInflater layoutInflater
                 = (LayoutInflater) getBaseContext()
                 .getSystemService(LAYOUT_INFLATER_SERVICE);
-        View mainView = layoutInflater.inflate(R.layout.activity_main, null);
-        wv = mainView.findViewById(R.id.webView);
 
+        View mainView = layoutInflater.inflate(R.layout.activity_main, null);//в этой view ищем webview
+        View childView;
+        wv = mainView.findViewById(R.id.webView);
         dbHelper = new DBHelper(this);
         db = dbHelper.getWritableDatabase();
-        View childView;
         Context mContext = getApplicationContext();
-        parentMarks = findViewById(R.id.parentMarks);
+        parentMarks = findViewById(R.id.parentMarks);//контейнер для закладок (layout внутри scrollview)
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        Cursor c = db.query("linkTable", null,null, null,
+        Cursor c = db.query(NAME_TABLE, null,null, null,
                 null, null, null);
         if(c.moveToFirst()) {
             c.moveToNext();//id = 0 its home
@@ -62,7 +63,7 @@ public class MarksActivity extends AppCompatActivity {
                 btnCancel.setId(parentMarks.getChildCount());
 
                 tvMarkLink.setText(c.getString(c.getColumnIndex("link")));
-                parentMarks.addView(childView);
+                parentMarks.addView(childView);//добавляем закладку в контейнер
             }while(c.moveToNext());
 
         }
@@ -76,7 +77,7 @@ public class MarksActivity extends AppCompatActivity {
                 parentMarks.removeViewAt(id);
                 deleteLinkFromDB(db, id);
                 refreshDB(db);
-                updateIdButton((ImageButton) view);
+                updateIdButton();
                 updateIdTextView();
             }
         }
@@ -87,13 +88,16 @@ public class MarksActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), MainActivity.class);
 
             TextView tv = (TextView) view;
-            intent.putExtra(KEY_MARK, tv.getId());
+            Integer id = tv.getId();
+            id+=1;
+            intent.putExtra(KEY_MARK, id);
 
-            startActivity(intent);
+            startActivity(intent);//открываем страницу в новом activity
         }
     };
-    private void updateIdButton(ImageButton btn){
+    private void updateIdButton(){
         View v = null;
+        ImageButton btn;
         for(int i = 0; i < parentMarks.getChildCount(); i++){
             v = parentMarks.getChildAt(i);
             btn = v.findViewWithTag("cancel");
@@ -116,26 +120,26 @@ public class MarksActivity extends AppCompatActivity {
     private void deleteLinkFromDB(SQLiteDatabase db, Integer id){
         db = dbHelper.getWritableDatabase();
         id+=1;//id++, т.к. в таблице нумерация с 1
-        db.delete("linkTable", "id = " + id, null);
+        db.delete(NAME_TABLE, "id = " + id, null);
     }
     private void refreshDB(SQLiteDatabase db){
         //потому что при удалении строки c id=3 она больше никогда не появится в бд
         //id=0 home
         ArrayList<String> tempDB = new ArrayList<String>();
-        Cursor c = db.query("linkTable", null,null, null,
+        Cursor c = db.query(NAME_TABLE, null,null, null,
                 null, null, null);
         if(c.moveToFirst()){
             do{
                 tempDB.add(c.getString(c.getColumnIndex("link")));
             }while(c.moveToNext());
         }
-        db.delete("linkTable", null, null);
-        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = 'linkTable'");
+        db.delete(NAME_TABLE, null, null);
+        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE NAME = '" + NAME_TABLE + "'");
         dbHelper = new DBHelper(getApplicationContext());
         ContentValues cv = new ContentValues();
         for(int i = 0; i < tempDB.size(); i++){
             cv.put("link", tempDB.get(i));
-            db.insert("linkTable",null, cv);
+            db.insert(NAME_TABLE,null, cv);
         }
     }
 }
